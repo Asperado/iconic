@@ -2,6 +2,8 @@ Environment Setup:
   1. Install python 2.7
   2. Install nltk
   3. Install WordNet in nltk
+    import nltk
+    nltk.download('wordnet')
   4. Matlab
   5. use Matlab to complie processor/HoG/features.cc
 
@@ -24,6 +26,9 @@ Running:
   3. Go to script directory.
   4. Download Flickr data.
     sh ./download_data.sh ${query}
+    You can terminate the program any time you want. It can be re-runned and not downloading the data already downloaded.
+    When you terminate your program, it will find the downloaded images Flickr id at ${root_dir}/data/dataset/${query}.txt . Then you know how many data you have downloaded so far.
+    
   5. Extract tag features and do tag clustering.
     sh ./extract_tag_feature_and_semantics.sh ${query}
   6. Extract visual features.
