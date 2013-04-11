@@ -1,0 +1,15 @@
+class Photo(object):
+    photoId = ''
+    ownerId = ''
+    tags = []
+    datetaken = ''
+    timetaken = ''
+    url = ''
+    secret = ''
+    farm = ''
+    url_s = ''
+    url_q = ''
+    url_t = ''
+    url_m = ''
+    url_z = ''
+    url_b = ''

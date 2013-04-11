@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+
+.node {
+  stroke: #fff;
+  stroke-width: 1.5px;
+}
+
+.link {
+  stroke: #9ecae1;
+  stroke-width: 3px;
+  stroke-opacity: .3;
+}
+
+</style>
+<body>
+<div id = 'chart' style="position: absolute; top: 0; left: 0;">
+</div>
+<div id = 'image_preview' style="position: relative; float:left;">
+</div>
+</body>
+
+<script src="http://d3js.org/d3.v3.min.js"></script>
+<script type="text/javascript" src="http://code.jquery.com/jquery-1.9.1.min.js"></script> 
+<script src="http://homtao.com/iconic/web/cluster/script/impression1.js"></script>
+<script src="http://homtao.com/iconic/web/cluster/script/url_tools.js"></script>
+
+<link href="image_table.css" rel="stylesheet" type="text/css" />
+<script type="text/javascript">
+
+  var params = getUrlParams();
+  var resultName = params['result_name'];
+  var resultFeed = params['result_feed'] ? params['result_feed'] : resultName;
+
+  var width = 2500,
+  height = 2500;
+  var svgWidthOffset = 50;
+  var svgHeightOffset = 50;
+  
+  var forceLinkDist = 100;
+  var forceCharge = -350;
+  var thumbnailSize = 60;
+
+  var color = d3.scale.category20();
+
+  var force = d3.layout.force()
+    .charge(forceCharge)
+    .linkDistance(forceLinkDist)
+    .size([width - svgWidthOffset, height -svgHeightOffset]);
+
+  var svg = d3.select("#chart").append("svg")
+    .attr("width", width)
+    .attr("height", height);
+
+  var nodes_info;
+  d3.json(resultName + "/nodes.json", function(data) {
+	nodes_info = data;
+	update();
+  });
+  
+  var sample_point = function(point_size, tot_point) {
+	var seed = [];
+	for (var i = 0; i < tot_point; ++i) {
+		seed.push(i);
+	}
+	for (var i = tot_point - 1; i >= 0; i--) {
+		var rand_pos = Math.floor(i * Math.random());
+		var t = seed[rand_pos];
+		seed[rand_pos] = seed[i];
+		seed[i] = t;
+	}
+	return seed.slice(0, point_size);
+  }
+  var graph_visited = {};
+  var sample_graph = function(graph, v1, new_graph) {
+	//console.log(new_graph);
+	if (!graph_visited[v1]) {
+		new_graph.nodes.push(graph.nodes[v1]);		
+	//	console.log(graph.nodes[v1]);
+	} else {
+		return new_graph;
+	}
+	graph_visited[v1] = 1;
+	for (var i = 0; i < graph.links.length; ++i) {
+		
+		if (graph.links[i].source == v1) {
+			//console.log(graph.links[i]);
+			new_graph.links.push(graph.links[i]);
+			//console.log(graph.links[i].target);
+			new_graph = sample_graph(graph, graph.links[i].target, new_graph);
+		}
+		
+		if (graph.links[i].target == v1) {
+			//console.log(graph.links[i]);
+			new_graph.links.push(graph.links[i]);
+			//console.log(graph.links[i].source);
+			new_graph = sample_graph(graph, graph.links[i].source, new_graph);
+		}
+	}
+	return new_graph;
+  }
+  
+  
+  var update = function() {
+    d3.json(resultName + "/graph.json", function(json) {
+
+	var selected_nodes = sample_point(1, json.nodes.length - 1);
+	var new_graph = {};
+	new_graph.nodes = [];
+	new_graph.links = [];
+	var original_json = json;
+	for (var i = 0; i < selected_nodes.length; ++i) {
+		new_graph = sample_graph(original_json, selected_nodes[i], new_graph);
+	}
+	json = new_graph;
+	console.log(new_graph.nodes.length);
+
+	force
+		.nodes(json.nodes)
+		.links(json.links)
+		.start();
+
+	var link = svg.selectAll(".link")
+	  .data(json.links)
+	  .enter().append("line")
+	  .attr("class", "link");
+	  
+	var text_edge = svg.selectAll(".edge_text")
+		.data(json.links)
+		.enter().append("svg:text")		
+		.text(function(d){return d.value;});
+
+	var node = svg.selectAll(".node")
+	  .data(json.nodes)
+	  .enter().append("g")
+	  .attr("class", "node")
+	  .call(force.drag);
+
+	node
+	  .append("image")
+	  .attr("class", "icon")
+	  .attr("xlink:href", function(d) {return nodes_info[d.name].examplar_image_url;})
+	  .attr("x", -8)
+	  .attr("y", -8)
+	  .attr("width", 50)
+	  .attr("height", 50)
+	  .on("mouseover", function(d) {
+		
+		loc = cursorPoint(d3.event);
+		mouseX = loc.y;
+		mouseY = loc.x;
+
+		node_id = nodes_info[d.name].node_id;
+		if (!node_id) {
+			node_id = d.name;
+		}
+	    node_info_url = resultFeed + "/" + "node_" + node_id + ".json";
+		d3.json(node_info_url, function(node_data) {
+		
+			var_region = getImageBlock(node_data, 9);
+			//addImage($('#image_preview'), node_data, 9, 0);
+			$('#image_preview').html(var_region);
+			$('#image_preview').css({'top':mouseX,'left':mouseY}).fadeIn('slow');
+			
+		});
+	  });
+
+	node.append("circle")
+	  .attr("class", "node")
+	  .attr("r", 5)
+	  .style("fill", function(d) { return color(d.group); })
+	
+
+	//node.append("text")
+	//  .attr("dx", 12)
+	//  .attr("dy", ".35em")
+	//  .text(function(d) { return d.name });
+
+	force.on("tick", 
+			function() {
+			  link.attr("x1", function(d) { return d.source.x; })
+			  	  .attr("y1", function(d) { return d.source.y; })
+				  .attr("x2", function(d) { return d.target.x; })
+				  .attr("y2", function(d) { return d.target.y; });
+
+			  text_edge.attr("x", function(d) { return (d.source.x + d.target.x) / 2; })
+					   .attr("y", function(d) { return (d.source.y + d.target.y) / 2; });
+			  node.attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
+			});
+	});
+	
+  } 
+
+  
+function emptyDiv(divId){
+    div = $(divId);
+	div.hide();
+    div.html("");
+	div.show("");
+}
+
+function addImage(divHandler, allImages, max_per_block, start_id){
+    emptyDiv(divHandler);
+
+	old_max_per_block = max_per_block;
+    for(var row = 0;row < 1;row++){ 
+		var images = allImages;
+		var image_block = $('<div class="image_block">');
+
+		image_block.css('display', 'inline-block').css('margin', '2px');
+
+		var line = document.createElement("div");
+		line.innerHTML = '<b>Tags: </b>' + images[0].tags;
+		image_block.append(line);
+
+		var line = document.createElement("div");
+		line.innerHTML = '<b>Iconic Images Groups</b>';
+		image_block.append(line);
+		
+		line = $('<div>');
+		var current_line_cnt = 0;
+		max_per_block = old_max_per_block;
+		if(max_per_block == -1) {
+			max_per_block = images.length;
+		}		
+
+		max_per_block = Math.min(images.length, max_per_block);
+		var max_per_row = Math.round(Math.sqrt(max_per_block));
+		for(var i = 0;i<max_per_block;i++){		
+			 var img = $("<img>");
+			 
+			 img.attr('src', images[i].thumbnail);
+			 img.attr('width', 50);
+			 img.attr('height', 50);
+
+			 var newlink = $('<a>');
+			 newlink.attr('href', '#').attr('onclick', "window.open('" + images[i].thumbnail + "');");//alert(" + (start_id +  row + 1) + ");");
+			
+			 newlink.append(img);
+			 line.append(newlink);
+			 current_line_cnt ++;
+			 if (current_line_cnt == max_per_row) {
+				current_line_cnt = 0;
+				$(image_block).append(line);
+				line = $("<div>");
+			 }
+		}
+
+		$(image_block).append($(line));
+		$(divHandler).append($(image_block));
+    }
+}  
+
+
+// Get point in global SVG space
+function cursorPoint(evt){
+	// Find your root SVG element
+	// Create an SVGPoint for future math
+	var svgRef = document.querySelector('svg');
+	var pt = svgRef.createSVGPoint();
+	pt.x = evt.clientX; pt.y = evt.clientY;
+	return pt.matrixTransform(svgRef.getScreenCTM().inverse());
+}
+
+// Returns path data for a rectangle with rounded right corners.
+// The top-left corner is ?x,y?.
+function rightRoundedRect(x, y, width, height, radius) {
+  return "M" + x + "," + y
+       + "h" + (width - radius)
+       + "a" + radius + "," + radius + " 0 0 1 " + radius + "," + radius
+       + "v" + (height - 2 * radius)
+       + "a" + radius + "," + radius + " 0 0 1 " + -radius + "," + radius
+       + "h" + (radius - width)
+       + "z";
+}
+
+window.onload=function() {
+	$(document).keypress(function(event) {
+		zoomForceLinkDistOffset = 10;
+		zoomForceChargeOffset = 50;
+		zoomThumbnailOffset = 5;
+		zoomWidthOffset = 50;
+		zoomHeightOffset = 50;
+		if ( event.which == 13 ) {
+			if (forceCharge + zoomForceChargeOffset < 0) {
+				width = width - zoomWidthOffset;
+				height = height - zoomHeightOffset;			
+				forceLinkDist = forceLinkDist - zoomForceLinkDistOffset;
+				forceCharge = forceCharge + zoomForceChargeOffset;
+					d3.select("svg")
+						.attr("width", width)
+						.attr("height", height);
+					
+					force
+						.charge(forceCharge)
+						.linkDistance(forceLinkDist)
+						.size([width - svgWidthOffset, height - svgHeightOffset]);
+					force.start();
+				thumbnailSize = thumbnailSize - zoomThumbnailOffset;
+			}
+		}
+		
+		if ( event.which == 32 ) {
+			width = width + zoomWidthOffset;
+			height = height + zoomHeightOffset;
+			forceLinkDist = forceLinkDist + zoomForceLinkDistOffset;
+			forceCharge = forceCharge - zoomForceChargeOffset;
+				d3.select("svg")
+					.attr("width", width)
+					.attr("height", height);
+				
+				force
+					.charge(forceCharge)
+					.linkDistance(forceLinkDist)					
+					.size([width - svgWidthOffset, height - svgHeightOffset]);
+				force.start();
+			thumbnailSize = thumbnailSize + zoomThumbnailOffset;
+		}
+		
+	    svg.selectAll(".icon")			
+		  .attr("width", thumbnailSize)
+		  .attr("height", thumbnailSize);
+
+		
+	});
+}
+
+ 
+</script>

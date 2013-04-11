@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+
+.node {
+  stroke: #fff;
+  stroke-width: 1.5px;
+}
+
+.link {
+  stroke: #9ecae1;
+  stroke-width: 3px;
+  stroke-opacity: .3;
+}
+
+</style>
+<body>
+<div id ="chart" style="position: absolute; top:0; left:0;"></div>
+<div class="image_preview" style="position: absolute;">
+</div>
+<div id ="image_blocks" style="position: absolute;">
+</div>
+</body>
+
+<script src="http://d3js.org/d3.v3.min.js"></script>
+<script type="text/javascript" src="http://code.jquery.com/jquery-1.9.1.min.js"></script> 
+<script src="http://homtao.com/iconic/web/cluster/script/impression1.js"></script>
+<script src="http://homtao.com/iconic/web/cluster/script/d3.layout.cloud.js"></script>
+<script src="http://homtao.com/iconic/web/cluster/script/url_tools.js"></script>
+<link href="http://homtao.com/iconic/web/cluster/css/image_table.css" rel="stylesheet" type="text/css" />
+<link rel="stylesheet" type="text/css" href="http://homtao.com/iconic/web/cluster/css/basic.css" />
+<script type="text/javascript">
+
+  var nodeMetaRoot = 'iconic_dog_all_large_scale_all_debug_json';
+  var width = 1200,
+  height = 1200;
+
+  var params = getUrlParams();
+  var resultName = params['result_name'];
+
+  var color = d3.scale.category20();
+  var fontSize = d3.scale.log().range([10, 100]);
+	 
+   var layout = d3.layout.cloud().size([width, height])	
+	.rotate(function() { return ~~(Math.random() * 2) * 90; })
+	.font("Impact")
+	.fontSize(function(d) { return d.size; })
+	.on("end", draw);
+
+  var nodes_info;
+
+  var wordToNodeId = {};
+  var wordLengthCount = {};
+  var wordSize = {};
+  d3.json(resultName + "/nodes_tag_cluster.json", function(data) {
+	nodes_info = data;
+	
+	$.each(nodes_info, function(index, d) {
+		wordLengthCount['' + d.related_nodes.length] = 1;
+	});
+	
+	var count = 1;
+	$.each(wordLengthCount, function(i, val) {
+		wordSize[i] = count * 2;
+		count = count + 1;	
+    });
+	console.log(wordSize);
+	
+	var wordsData = nodes_info.map(		
+		function(d, index){
+			var nodeTag = d.desc;
+			wordToNodeId[nodeTag] = d.related_nodes;
+			var textSize = 10 + Math.random() * 90;
+//			textSize = 14 + Math.sqrt(d.related_nodes.length);
+			textSize = 14 + wordSize[d.related_nodes.length];
+			return {text: nodeTag, size: textSize}			
+		}
+	);
+//	wordsData = wordsData.slice(1,50);
+	layout
+	.words(wordsData);
+	layout.start();
+
+  });
+  
+
+function emptyDiv(divId){
+    div = $(divId);
+	div.hide();
+    div.html("");
+	div.show("");
+}
+
+function addImage(divHandler, allImages, max_per_block, start_id){
+    emptyDiv(divHandler);
+
+	old_max_per_block = max_per_block;
+    for(var row = 0;row < 1;row++){ 
+		var images = allImages;
+		var image_block = $('<div class="image_block">');
+
+		image_block.css('display', 'inline-block').css('margin', '2px');
+
+		var line = document.createElement("div");
+		line.innerHTML = '<b>Tags: </b>' + images[0].tags;
+		image_block.append(line);
+
+		var line = document.createElement("div");
+		line.innerHTML = '<b>Iconic Images Groups</b>';
+		image_block.append(line);
+		
+		line = $('<div>');
+		var current_line_cnt = 0;
+		max_per_block = old_max_per_block;
+		if(max_per_block == -1) {
+			max_per_block = images.length;
+		}		
+
+		max_per_block = Math.min(images.length, max_per_block);
+		var max_per_row = Math.round(Math.sqrt(max_per_block));
+		for(var i = 0;i<max_per_block;i++){		
+			 var img = $("<img>");
+			 
+			 img.attr('src', images[i].thumbnail);
+			 img.attr('width', 60);
+			 img.attr('height', 60);
+
+			 var newlink = $('<a>');
+			 newlink.attr('href', '#').attr('onclick', "window.open('" + images[i].thumbnail + "');");//alert(" + (start_id +  row + 1) + ");");
+			
+			 newlink.append(img);
+			 line.append(newlink);
+			 current_line_cnt ++;
+			 if (current_line_cnt == max_per_row) {
+				current_line_cnt = 0;
+				$(image_block).append(line);
+				line = $("<div>");
+			 }
+		}
+
+		$(image_block).append($(line));
+		$(divHandler).append($(image_block));
+    }
+}
+
+// Get point in global SVG space
+function cursorPoint(evt){
+	// Find your root SVG element
+	// Create an SVGPoint for future math
+	var svgRef = document.querySelector('svg');
+	var pt = svgRef.createSVGPoint();
+	pt.x = evt.clientX; pt.y = evt.clientY;
+	return pt.matrixTransform(svgRef.getScreenCTM().inverse());
+}
+
+function draw(words, bounds) {
+  scale = bounds ? Math.min(
+      width / Math.abs(bounds[1].x - width / 2),
+      width / Math.abs(bounds[0].x - width / 2),
+      height / Math.abs(bounds[1].y - height / 2),
+      height / Math.abs(bounds[0].y - height / 2)) / 2 : 1;
+
+  var vis = d3.select("#chart")
+	.append("svg")
+	.attr("width", width)
+	.attr("height", height)
+	.append("g");
+
+  var text = vis.selectAll("text")
+    .data(words, function(d) { return d.text.toLowerCase(); });
+  
+  text.transition()
+    .duration(200)
+    .attr("transform", function(d) { return "translate(" + [d.x, d.y] + ")rotate(" + d.rotate + ")"; })
+    .style("font-size", function(d) { return d.size + "px"; });
+  
+  text.enter().append("text")
+    .attr("text-anchor", "middle")
+    .attr("transform", function(d) { return "translate(" + [d.x, d.y] + ")rotate(" + d.rotate + ")"; })
+    .style("font-size", function(d) { return d.size + "px"; })
+    .on("click", function(d) {
+    })
+	.on("mousemove", function(d) {
+		loc = cursorPoint(d3.event);
+		mouseX = loc.y;
+		mouseY = loc.x;
+		$('#image_blocks').css({'top':mouseX,'left':mouseY});		
+	})
+	.on("mouseover", function(d) {
+	  loc = cursorPoint(d3.event);
+	  mouseX = loc.y;
+	  mouseY = loc.x;
+		
+	  getTextPage(d.text, 0); 
+	})
+    .style("opacity", 1e-6)
+    .transition()
+    .duration(1000)
+    .style("opacity", 1);
+  
+  text.style("font-family", function(d) { return d.font; })
+    .style("fill", function(d) { return color(d.text.toLowerCase()); })
+    .text(function(d) { return d.text; });
+  //var exitGroup = background.append("g")
+  //    .attr("transform", vis.attr("transform"));
+  //var exitGroupNode = exitGroup.node();
+  
+  text.exit().each(function() {
+    exitGroupNode.appendChild(this);
+  });
+  //exitGroup.transition()
+   //   .duration(1000)
+    //  .style("opacity", 1e-6)
+     // .remove();
+  vis.transition()
+    .delay(1000)
+    .duration(750)
+    .attr("transform", "translate(" + [width >> 1, height >> 1] + ")scale(" + scale + ")");
+	      
+	
+}
+
+function getTextPage(text, pageNum) {
+	pageNum = parseInt(pageNum);
+	node_info_url = nodeMetaRoot + "/" + "node_" + wordToNodeId[text][pageNum]  + ".json";
+	d3.json(node_info_url, function(nodeData) {
+		$('.image_preview').hide();
+		var extraNodeData = {};
+		extraNodeData.title = text;
+		previewHTML = getNodePreviewImagesHTML(nodeData, extraNodeData);
+		var totalPage = wordToNodeId[text].length;
+		if (pageNum + 1 < totalPage) {
+			var nextPageFunction = 'getTextPage(' + '"' + text + '"' + ',' + '"' + (pageNum + 1) +'"' + ');';
+			var nextPage = $('<div>').html("<a href='#' onclick='" + nextPageFunction + " return false;'>next page (" + (pageNum + 1) + "/" + totalPage + ")</a>");
+			previewHTML = $(previewHTML).prepend(nextPage);
+		}
+		$('#image_blocks').html(previewHTML).css({'top':mouseX,'left':mouseY}).show();
+	});	
+}
+
+function getNodePreviewImagesHTML(nodeData, extraGroupData) {
+	var allNodeImages = [];
+	allNodeImages.push(nodeData);
+	return getImageBlocks(allNodeImages, 36, 0, extraGroupData, 60);				
+}
+  
+ 
+</script>

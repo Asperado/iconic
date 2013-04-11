@@ -1,0 +1,35 @@
+body {
+	margin:0;
+	padding:40px;
+	background:#fff;
+	font:80% Arial, Helvetica, sans-serif;
+	color:#555;
+}
+
+h1{
+	font-size:180%;
+	font-weight:normal;
+	color:#555;
+}
+a{
+	text-decoration:none;	
+}
+p{
+	clear:both;
+	margin:0;
+	padding:.5em 0;
+}
+pre{
+	display:block;
+	font:100% "Courier New", Courier, monospace;
+	padding:10px;
+	border:1px solid #bae2f0;
+	background:#e3f4f9;	
+	margin:.5em 0;
+	overflow:auto;
+	width:800px;
+}
+
+clicktable {
+	cursor: hand;	
+}

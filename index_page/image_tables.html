@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
+    <script src="http://d3js.org/d3.v3.min.js"></script>
+	<script type="text/javascript" src="http://code.jquery.com/jquery-1.9.1.min.js"></script> 
+    <script src="script/impression1.js"></script>
+    <script src="script/url_tools.js"></script>
+	
+	<link href="css/image_table.css" rel="stylesheet" type="text/css" />
+	<link rel="stylesheet" type="text/css" href="css/basic.css" />
+    <style type="text/css">
+
+    </style>
+  </head>
+  <body>
+	<div id="title"></div>
+	<div id="desc"></div>
+	<div id="page_nav" class="page_navigation">
+	</div>
+	<div id="chart">
+	</div>
+	<div id="loading" style="display:none;text-align: center;">
+		<img src="images/loading.gif" alt="Loading"/>
+	</div>
+	<div id="page_nav2" class="page_navigation">
+	</div>
+    <div class="image_preview" style="display: hideen;position: absolute;">
+	</div>
+
+    <script type="text/javascript">
+	  var i = 0;
+	  var params = getUrlParams();
+	  var resultName = params['result_name'];
+	  var resultFeed = params['result_feed'] ? params['result_feed'] : resultName;
+	  var allNodesData;
+	  var nodesPerPage = 20;
+	  var totPages = 0;
+ 	  var curPageId = 1;
+	  
+	  d3.json(resultName + "/nodes.json", function(json) {
+		$('#title').html('<h3>Iconic Clusters Page</h3><hr>');
+		allNodesData = json;
+		update(allNodesData, curPageId);		
+		totPages = Math.ceil(allNodesData.length / nodesPerPage);
+		$('.page_navigation').html(getDisplayNavigationHTML(curPageId, totPages, update));
+
+		d3.json(resultName + "/desc.json", function(desc) {
+			if (desc) {
+				$('#desc').html(desc.comment);
+			}
+		});
+	});
+     
+	var scrollLock = 0;
+	$(window).scroll(function(){
+		window.setTimeout(function(){
+			$("#desc").slideUp();
+		}, 5000);		
+		if  ($(window).scrollTop() == $(document).height() - $(window).height()){
+			if (curPageId < totPages && scrollLock == 0) {
+				gotoPage(curPageId + 1, 1);				
+				scrollLock = 1;
+				window.setTimeout(function(){scrollLock = 0;}, 1000);
+			}
+		}
+	});
+	
+	 function gotoPage(pageId, keepOldContent) {	
+		curPageId = pageId;
+		update(allNodesData, pageId, keepOldContent);
+		$('.page_navigation').html(getDisplayNavigationHTML(curPageId, totPages));
+	 }
+	
+	 	 
+	 // Since the data is fetched asynchronizedly, need to add an buffer to reorder the data.
+	 // The addedBufferCnt is to count the number of data received, so that we can output the 
+	 // buffer when all data has received.
+	 var bufferHtmlData = [];
+	 var addedBufferCnt = 0;
+	 var bufferSannedTo = 0;
+	 function update(json, pageId, keepOldContent) {
+		if (!keepOldContent) {
+			emptyDiv($('#chart'));
+		}
+		previewHide();
+		$('#loading').show();
+		bufferHtmlData = [];
+		addedBufferCnt = 0;
+		bufferSannedTo = 0;
+		var container = d3.select('#chart');
+		
+		// Compute the new tree layout.
+		var raw_nodes = json;
+		var nodeStart = (pageId - 1)* nodesPerPage;
+		var nodeEnd = Math.min(json.length, nodeStart + nodesPerPage);
+		nodes = raw_nodes.slice(nodeStart, nodeEnd);
+		var node = container.selectAll('image_blocks')
+							 .data(nodes, function(d) { return d.node_id || (d.node_id = ++i); })
+		node.enter().append('div').html(function(d, node_index) {
+				console.log('load ' + d.node_id);
+				nodeInfoUrl = resultFeed + "/node_" + d.node_id + ".json";
+
+				d3.json(nodeInfoUrl, function(nodeData) {
+					
+					d.title = '<font style="color:red;">node ' + (nodeStart + node_index + 1) + '<br>' + d.cluster_id + '<br>' + d.comment + '</font>';
+					htmlData = getNodePreviewImagesHTML(nodeData, d);
+					bufferHtmlData[node_index] = htmlData;
+					addedBufferCnt = addedBufferCnt + 1;
+
+					var keepOrder = 1;
+					if (!keepOrder) {
+						$('#image_tables').append(htmlData);
+						$('#loading').hide();
+					} else {
+						if (addedBufferCnt == nodeEnd - nodeStart) {
+							$('#loading').hide();
+							for (var i = bufferSannedTo; i < bufferHtmlData.length; ++i) {
+								$('#image_tables').append(bufferHtmlData[i]);
+							}
+						}
+					}
+				});
+				return '<div id="image_tables"></div>';
+			});
+		
+		$('#image_tables').on('mouseleave', function(){previewHide();});
+	 }
+	 
+	 function getNodePreviewImagesHTML(nodeData, extraGroupData) {
+		var allNodeImages = [];
+		allNodeImages.push(nodeData);
+		return getImageBlocks(allNodeImages, 50, 0, extraGroupData, 60);				
+	 }
+	
+    </script>
+  </body>
+</html>

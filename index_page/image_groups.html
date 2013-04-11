@@ -1,0 +1,177 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
+    <script src="http://d3js.org/d3.v3.min.js"></script>
+	<script type="text/javascript" src="http://code.jquery.com/jquery-1.9.1.min.js"></script> 
+    <script src="http://homtao.com/iconic/web/cluster/script/impression1.js"></script>
+    <script src="http://homtao.com/iconic/web/cluster/script/url_tools.js"></script>
+	
+	<link href="http://homtao.com/iconic/web/cluster/css/image_table.css" rel="stylesheet" type="text/css"/>
+	<link rel="stylesheet" type="text/css" href="http://homtao.com/iconic/web/cluster/css/basic.css" />
+    <style type="text/css">
+		table.fixed { table-layout:fixed; width: 250%;}
+    </style>
+  </head>
+  <body>
+	<div id="result_nav"></div>
+	<div id="title"></div>
+	<div id="desc"></div>
+	<div id="group_nav" class="group_navigation" style="float:left">
+		<select size=50 id="group_list">
+		</select>
+	</div>
+	<div id="subpage_footnote"></div>
+	<div id="page_nav" class="page_navigation">
+	</div>
+	<table id="image_table" style="position: absolote"> 
+	</table>
+	<div id="loading" style="display:none;text-align:center;">
+	  <img src="images/loading.gif" alt="Loading"/>
+	</div>
+    <div class="image_preview" style="display: hideen;position: absolute;">
+	</div>
+	<div id="page_nav2" class="page_navigation">
+	</div>
+
+    <script type="text/javascript">
+	  var i = 0;
+	  var params = getUrlParams();
+	  var resultName = params['result_name'];
+	  var resultFeed = params['result_feed'] ? params['result_feed'] : resultName;
+	  var groupId = params['group_id'] ? params['group_id'] : 0;
+	  var disableResultNav = params['result_nav'] ? params['result_nav'] : 0;
+	  var allNodesData;
+	  var curNodeData;
+	  var nodesPerPage = 20;
+	  var totPages = 0;
+ 	  var curPageId = 1;
+	  
+	  if (disableResultNav == 0) {
+		  $('#result_nav').append($('<a>').attr('href', function(){		
+			return 'image_tables.html?' + 'result_name=' + resultName + '&result_feed=' + resultFeed;
+		  }).html('view iconic cluster'));
+	  }
+	  $.getJSON(resultName + "/nodes_tag_cluster.json", function(json) {
+		$('#title').html('<h3>Visual Theme Page</h3><hr>');
+		allNodesData = json;
+		curNodeData = json[groupId];
+		for (var nid = 0; nid < allNodesData.length; ++nid) {
+			groupNav = $('<option>').html(allNodesData[nid].desc).attr('value', nid);									
+			$('#group_list').append(groupNav);
+		}
+		$('#group_list').on('change', function(d){groupId = this.selectedIndex; gotoPage(1);return false;});
+
+		gotoPage(curPageId);
+		$.getJSON(resultName + "/desc.json", function(desc) {
+			console.log('test');		
+			if (desc) {
+				$('#desc').html(desc.comment);
+			}
+		});
+	});
+     
+	var scrollLock = 0;
+	$(window).scroll(function(){
+		window.setTimeout(function(){
+			$("#desc").slideUp();
+		}, 5000);		
+		if  ($(window).scrollTop() == $(document).height() - $(window).height()){
+			if (curPageId < totPages && scrollLock == 0) {
+				gotoPage(curPageId + 1, 1);				
+				scrollLock = 1;
+				window.setTimeout(function(){scrollLock = 0;}, 1000);
+			}
+		}
+	});
+	 
+	 function gotoPage(pageId, keepOldContent) {	
+		curNodeData = allNodesData[groupId];
+		curPageId = pageId;
+		emptyDiv($('#chart'));
+		update(curNodeData, pageId, keepOldContent);
+		totPages = Math.ceil(curNodeData.related_nodes.length / nodesPerPage);
+		$('.page_navigation').html(getDisplayNavigationHTML(curPageId, totPages));
+	 }
+	 	 	 
+	 function update(node, pageId, keepOldContent) {
+		$('#loading').show();
+		if (!keepOldContent) {
+			emptyDiv($('#image_table'));
+		}
+		
+		var currentNode = node;
+//		console.log('load ' + groupId);
+		var jsonUrls = [];
+		var relatedNode = '';				
+
+		var related_nodes = currentNode.related_nodes;
+		var nodeStart = (pageId - 1)* nodesPerPage;
+		var nodeEnd = Math.min(related_nodes.length, nodeStart + nodesPerPage);		
+		related_nodes = related_nodes.slice(nodeStart, nodeEnd);
+		var related_node_result_feed = currentNode.related_node_result_feed;
+		if (related_node_result_feed) {
+			related_node_result_feed = related_node_result_feed.slice(nodeStart, nodeEnd);
+		}
+		var related_node_desc = currentNode.related_node_desc;
+		if (related_node_desc) {
+			related_node_desc = related_node_desc.slice(nodeStart, nodeEnd);
+		}
+		
+//		console.log('load ' + related_nodes);
+
+		nodesDesc = [];
+		var allNodes = '';
+		for (var i = 0; i < related_nodes.length; ++i) {
+			var curNodeId = related_nodes[i];
+			relatedNode = relatedNode == '' ? curNodeId : relatedNode + ',' + curNodeId;
+			currentResultFeed = resultFeed;
+			if (related_node_result_feed) {
+				var currentResultFeed = related_node_result_feed[i];
+			} 
+			tmpNodeInfoUrl = currentResultFeed + "/node_" + curNodeId + ".json";
+			jsonUrls.push(tmpNodeInfoUrl);
+			var nodeDesc = {}
+			currentNodeDesc = (currentNode.comment ? currentNode.comment : currentNode.desc);
+			if (related_node_desc) {
+				currentNodeDesc = related_node_desc[i];
+			}
+			nodeDesc.title = '<font style="color:red;">node ' + curNodeId + '<br>' + currentNodeDesc + '</font>';
+			nodesDesc.push(nodeDesc);
+		}
+		
+		relatedNode = '<font style="color:red;"><b>Nodes: ' + relatedNode + '</b></font>';
+		$('#subpage_footnote').html(relatedNode);
+		if (jsonUrls.length > 0) { // Need to Change Back!!!
+			loadJsons(jsonUrls, [], [], 0, nodesDesc);
+			$('#image_table').on('mouseleave', function(){previewHide();});
+		}
+	 }
+	 
+	 function getNodeImagesHTML(nodeData, extraGroupData) {
+		return getImageBlock(nodeData, 36, extraGroupData, 60);				
+	 }
+
+	 function loadJsons(jsonUrls, onLoadedAll, allData, index, extraGroupData) {
+		if (index < jsonUrls.length) {
+			try {
+				$.getJSON(jsonUrls[index], function(nodeData) {
+					allData[index] = nodeData;				
+					loadJsons(jsonUrls, onLoadedAll, allData, index + 1, extraGroupData);
+				});
+			} catch (err) {	
+//				console.log('except');
+				loadJsons(jsonUrls, onLoadedAll, allData, index + 1, extraGroupData);
+			}
+		} else {
+			for (var i = 0; i < allData.length; ++i) {
+				imageBlock = getNodeImagesHTML(allData[i], extraGroupData[i]);
+				$('#image_table').append(imageBlock);
+			}
+			$('#loading').hide();
+		}
+	 }
+    </script>
+  </body>
+</html>
