@@ -31,12 +31,12 @@
 <link rel="stylesheet" type="text/css" href="http://homtao.com/iconic/web/cluster/css/basic.css" />
 <script type="text/javascript">
 
-  var nodeMetaRoot = 'iconic_dog_all_large_scale_all_debug_json';
   var width = 1200,
   height = 1200;
 
   var params = getUrlParams();
   var resultName = params['result_name'];
+  var nodeMetaRoot = params['result_feed'];
 
   var color = d3.scale.category20();
   var fontSize = d3.scale.log().range([10, 100]);
