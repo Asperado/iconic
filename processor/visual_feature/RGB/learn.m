@@ -1,7 +1,5 @@
 function learn(image_root, feature_root, image_id_file, className, output_file_name)
 
-image_root = '/netscr/hongtao/Iconic/data/images/';
-feature_root = '/netscr/hongtao/Iconic/features/';
 image_dir = sprintf('%s/%s/', image_root, className); 
 data_dir = sprintf('%s/RGB/%s/', feature_root, className);
 feature_all_root = sprintf('%s/%s', data_dir, 'all');

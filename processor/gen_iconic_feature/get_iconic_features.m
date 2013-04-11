@@ -90,4 +90,5 @@ function get_iconic_features(query, feature_root)
     save(sprintf('%s', config_data.visual_features_output_path), 'visFeatures', '-v7.3');
     size(visFeatures)
     size(tagFeatures)    
+    exit(0);
 end
