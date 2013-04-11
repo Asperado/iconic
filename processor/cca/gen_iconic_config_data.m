@@ -77,7 +77,7 @@ function config = gen_iconic_config_data(query, root_path, tag_dim, cca_feature_
   config.classifier_iconic_path = config.default_iconic_path;
   config.merge_visual_theme_iconic_path = config.default_iconic_path;
                                         
-  config.web_page_output_root = sprintf('%s/web/cluster', config.root_path);
+  config.web_page_output_root = sprintf('%s/web', config.root_path);
 
   % Database
   config.database = IconicDatabase(config.query, config.root_path, config.tag_dim);
