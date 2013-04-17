@@ -4,8 +4,10 @@ Environment Setup:
   3. Install WordNet in nltk
     import nltk
     nltk.download('wordnet')
-  4. Matlab
-  5. use Matlab to complie processor/HoG/features.cc
+  4. Install Flickr API
+    http://stuvel.eu/flickrapi#installation
+  5. Matlab
+  6. use Matlab to complie processor/HoG/features.cc
     If you are using Mac OS and you encounter error while mexing file, you may need this patch. http://www.mathworks.com/support/solutions/en/data/1-FR6LXJ/
 
   NOTE: the system can be modified to run on Windows system, currently, it supports linux.
