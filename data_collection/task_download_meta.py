@@ -9,7 +9,8 @@ def main():
   arg_helper.add_argument('root_dir', 'r', 'root', 1);
   args = arg_helper.read_arguments();
   print (args);
-
+  
+  # Load keyword for querying Flickr.
   query_string = args['query'];
   
   dbHelper = DBHelper();
@@ -20,6 +21,8 @@ def main():
   pcdbFileName = dbHelper.getPCDBPath(query_string)
   outputDir = dbHelper.rawdataDir
 
+  # Split the division further to config.numThreadPerDivisions divisions, and 
+  # download data for each division sequentially.
   total_division = config.numSearchDivisions / config.numThreadPerDivisions
   for division_id in range(0, total_division):
     downloadQuery(query_string, configFileName, pcdbFileName, outputDir, division_id)

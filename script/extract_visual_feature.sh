@@ -6,7 +6,7 @@
 # WARNING: gist not supported yet, need debuging if you select it.
 
   query=$1
-  root=~/Desktop/magiconic/test_dir
+  root=/Users/hongtaohuang/Desktop/magiconic/test_dir
 
   do_dictionary_generation=1
   do_dense_sift=1

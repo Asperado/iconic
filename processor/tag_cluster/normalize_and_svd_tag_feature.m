@@ -1,5 +1,5 @@
 function U = normalize_and_svd_tag_feature(T, K)
-% T: tag feature
+% T: tag feature matrix.
 % K: output the top K normalizd left singular vectors.
 % U: the top K normalized left singular vectors.
 

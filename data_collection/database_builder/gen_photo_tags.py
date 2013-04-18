@@ -2,6 +2,12 @@ from Timing import tic;
 from Timing import toc;
 from CmdArgumentsHelper import CmdArgumentsHelper;
 
+# This function is similar to gen_photo_meta, the different is that
+# it does not generate image ids list and meta data as what
+# gen_photo_meta does. Instead, it assume that image ids list and
+# meta data is already generated, and generate the top tags and
+# tag features accordingly. 
+
 def main():
     arg_helper = CmdArgumentsHelper();
     arg_helper.add_argument('query', 'q', 'query', 1);
@@ -39,7 +45,7 @@ def main():
     print('build tag features...');
     from task_gen_top_tags import task_build_tag_features;
     tic();
-#    task_build_tag_features(top_word, query, photos, 0, root);
+    task_build_tag_features(top_word, query, photos, 0, root);
     toc();
 
 if __name__ == '__main__':

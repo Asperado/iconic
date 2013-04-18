@@ -5,7 +5,7 @@
   query=$1
   tag_dim=1000
   cluster_num=100
-  root_dir='~/Desktop/magiconic/test_dir'
+  root_dir='/Users/hongtaohuang/Desktop/magiconic/test_dir'
 # End parameters setting.
 
 code_dir='..'

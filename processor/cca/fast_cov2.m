@@ -1,4 +1,6 @@
 function ret = fast_cov2(A, B)
+% blockwise computing A*B'
+
     fprintf('begin computer cov.\n');
     bin_size = 400;
     ret = zeros(size(A, 2), size(B, 2), 'single');

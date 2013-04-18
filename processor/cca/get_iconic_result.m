@@ -44,6 +44,8 @@ function result = get_iconic_result(iconic_result_name, ...
             cluster_feature = Normalize(cluster_feature);
             database_feature = Normalize(database_feature);
 
+            % Choose the top 'iconic_cluster_size' nearest neighbor images to 
+	    % iconic cluster center as iconic cluster.
             fprintf('Construct image ids.\n');
             cluster_image_id = {}; 
             lines = 500;

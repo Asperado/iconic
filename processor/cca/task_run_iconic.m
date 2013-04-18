@@ -6,7 +6,9 @@ function task_run_iconic(query, root_path, tag_dim, cca_feature_dim, num_cluster
 				  cca_feature_dim, ...
 				  num_clusters)
 
+  % Cluster tag matrix we have not performed it.
   if (~exist(config.cluster_path, 'file'))
+    addpath('./kmeans');
     fprintf('Generate tag cluster\n');
     tag_mat = config.database.get_tag_feature();
     
@@ -22,7 +24,7 @@ function task_run_iconic(query, root_path, tag_dim, cca_feature_dim, num_cluster
     cca_feature_dim = config.cca_feature_dim(i);
     fprintf('Run dimension %d\n', cca_feature_dim);
 
-    % Doing cca
+    % Doing multivariable cca
     fprintf('Get cca result.\n');
     get_large_scale_cca(cca_feature_dim, ...
                                 config.feature_path, ...

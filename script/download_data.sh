@@ -1,5 +1,5 @@
 query=$1
-root_dir='~/Desktop/magiconic/test_dir'
+root_dir='/Users/hongtaohuang/Desktop/magiconic/test_dir'
 code_dir='..'
 
 python ${code_dir}/data_collection/task_download_meta.py -q ${query} -r ${root_dir} 

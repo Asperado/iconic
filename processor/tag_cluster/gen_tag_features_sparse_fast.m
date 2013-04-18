@@ -1,4 +1,6 @@
 function gen_tag_features_sparse_fast(query, tag_dim, feature_root, image_id_file)
+
+    % Build the feature path from image ids list.
     filenames = getStringListFromTxt(image_id_file);
     root_dir = sprintf('%s/tag%d/%s', feature_root, tag_dim, query);
 

@@ -11,6 +11,7 @@ function get_iconic_features(query, feature_root)
                 load(featurePath);
                 eval(feature.cmdGetFeature);
                 fprintf('Doing PCA on %s\n', feature.name);
+
                 % If data is larger than the set treshold, sample the data
                 % to calculate pca projection matrix.
                 max_size = 500000;

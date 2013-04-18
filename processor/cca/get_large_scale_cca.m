@@ -4,6 +4,20 @@ function get_large_scale_cca(cca_feature_dim, ...
                                 cluster_path, ...
                                 output_file, ...
                                 over_write)
+% cca_feature_dim: the dimension of final generated cca result.
+% visual_feature_path: visual feature.
+% tag_path: tag feature.
+% cluster_path: tag cluster path.
+% output_file: file to save the following cca result:
+%              Wx is the projection matrix, i.e. eigenvectors.
+%              D is the eigenvalues in diagonal matrix.
+%              cluster_mat is cluster matrix.
+%              feature_mat is visual feature matrix.
+%              tag_mat is tag feature matrix.
+%              feature_dim is column-wise dimension of visual feature matrix.
+%              tag_mat is column-wise dimension of tag feature matrix.
+% over_write: if set to 0, will skip if the output_file already exist.
+
     if (~exist(output_file, 'file') || over_write == 1)
         fprintf('Generate cca feature of dimension %d\n', cca_feature_dim);
         feature_mat = load(visual_feature_path);

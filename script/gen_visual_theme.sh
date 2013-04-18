@@ -6,7 +6,7 @@
   cca_dim=500
   tag_dim=1000
   cluster_num=100
-  root=~/Desktop/magiconic/test_dir
+  root=/Users/hongtaohuang/Desktop/magiconic/test_dir
 # End parameters setting.
 
 code_root='../processor/gen_visual_theme'
