@@ -24,11 +24,11 @@
 
 <script src="http://d3js.org/d3.v3.min.js"></script>
 <script type="text/javascript" src="http://code.jquery.com/jquery-1.9.1.min.js"></script> 
-<script src="http://homtao.com/iconic/web/cluster/script/impression1.js"></script>
-<script src="http://homtao.com/iconic/web/cluster/script/d3.layout.cloud.js"></script>
-<script src="http://homtao.com/iconic/web/cluster/script/url_tools.js"></script>
-<link href="http://homtao.com/iconic/web/cluster/css/image_table.css" rel="stylesheet" type="text/css" />
-<link rel="stylesheet" type="text/css" href="http://homtao.com/iconic/web/cluster/css/basic.css" />
+<script src="script/impression1.js"></script>
+<script src="script/d3.layout.cloud.js"></script>
+<script src="script/url_tools.js"></script>
+<link href="css/image_table.css" rel="stylesheet" type="text/css" />
+<link rel="stylesheet" type="text/css" href="css/basic.css" />
 <script type="text/javascript">
 
   var width = 1200,
@@ -36,7 +36,7 @@
 
   var params = getUrlParams();
   var resultName = params['result_name'];
-  var nodeMetaRoot = params['result_feed'];
+  var nodeMetaRoot = params['result_feed'] ? params['result_feed'] : resultName;
 
   var color = d3.scale.category20();
   var fontSize = d3.scale.log().range([10, 100]);

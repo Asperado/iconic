@@ -46,9 +46,9 @@ Running:
     Copy the all the files in index_page to ${root_dir}/web
 
     After finishing step 7, you can view in your browser (Firefox, Safari) iconic clusters:
-      ${root_dir}/web/image_tables.html?result_name=iconic_${query}_${cluster_num}&result_feed=iconic_${query}_${cluster_num}
+      ${root_dir}/web/image_tables.html?result_name=iconic_${query}_${cluster_num}
     After finishing step 8, you can view in your browser (Firefox, Safari) visual theme and tag cloud:
-      ${root_dir}/web/image_groups.html?result_name=visual_theme_${query}&result_feed=iconic_${query}_${cluster_num}
-      ${root_dir}/web/tag_cloud.html?result_name=visual_theme_${query}&result_feed=iconic_${query}_${cluster_num}
+      ${root_dir}/web/image_groups.html?result_name=iconic_${query}_${cluster_num}
+      ${root_dir}/web/tag_cloud.html?result_name=iconic_${query}_${cluster_num}
 
     NOTE: Google Chrome does not support offline browsing, you need to set up a server to have access to the ${root_dir}/web and view the pages.
