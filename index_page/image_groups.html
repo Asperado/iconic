@@ -19,6 +19,7 @@
 	<div id="title"></div>
 	<div id="desc"></div>
 	<div id="group_nav" class="group_navigation" style="float:left">
+		<div><a href="#" onclick="resortGroupNav();"><b id="resortGroupNavId">alphabetical<br> order</b></a></div>
 		<select size=50 id="group_list">
 		</select>
 	</div>
@@ -53,19 +54,74 @@
 			return 'image_tables.html?' + 'result_name=' + resultName + '&result_feed=' + resultFeed;
 		  }).html('view iconic cluster'));
 	  }
+	  
+	  var alphabetOrder = 1;
+	  var alphabetOrderDesc = "alphabetical<br> order";
+	  var themeSizeOrder = 2;
+	  var themeSizeOrderDesc = "theme size<br> order";
+	  var groupNavOrder = themeSizeOrder;
+	  var resortGroupNav = function() {
+		$('#group_list').html("");
+		if (groupNavOrder == themeSizeOrder) {
+			allNodesData.sort(function(a,b){
+				if(a.desc<b.desc) return -1;
+				if(a.desc>b.desc) return 1;
+				return 0;
+			});
+			groupNavOrder = alphabetOrder;
+			$('#resortGroupNavId').html(themeSizeOrderDesc);
+		} else {
+			allNodesData.sort(function(a,b){
+				if(a.related_nodes.length<b.related_nodes.length) return 1;
+				if(a.related_nodes.length>b.related_nodes.length) return -1;
+				return 0;
+			});
+		
+			groupNavOrder = themeSizeOrder;
+			$('#resortGroupNavId').html(alphabetOrderDesc);
+		}
+		updateGroupNav(allNodesData);
+	  }
+	  
+	  var firstDone = 1;
+	  var updateGroupNav = function(allNodesData) {
+		for (var nid = 0; nid < allNodesData.length; ++nid) {
+			groupNav = $('<option>').html(allNodesData[nid].desc + ' (' + allNodesData[nid].related_nodes.length + ')').attr('value', nid);									
+			$('#group_list').append(groupNav);
+		}
+		if (firstDone) {
+			firstDone = 0;
+			$('#group_list').on('change', function(d){groupId = this.selectedIndex; gotoPage(1);return false;});
+		}
+	  }
+	  
 	  $.getJSON(resultName + "/nodes_tag_cluster.json", function(json) {
 		$('#title').html('<h3>Visual Theme Page</h3><hr>');
 		allNodesData = json;
-		curNodeData = json[groupId];
-		for (var nid = 0; nid < allNodesData.length; ++nid) {
-			groupNav = $('<option>').html(allNodesData[nid].desc).attr('value', nid);									
-			$('#group_list').append(groupNav);
+		
+		newNodesData = [];
+		for (var i = 0; i < allNodesData.length; ++i) {
+			if (allNodesData[i].related_nodes) {
+				console.log(allNodesData[i]);
+				newNodesData.push(allNodesData[i]);
+			}
 		}
-		$('#group_list').on('change', function(d){groupId = this.selectedIndex; gotoPage(1);return false;});
+		allNodesData = newNodesData;
+		
+		
+		allNodesData.sort(function(a,b){
+				if(a.related_nodes.length<b.related_nodes.length) return 1;
+				if(a.related_nodes.length>b.related_nodes.length) return -1;
+				return 0;
+			});
+		
+		curNodeData = json[groupId];
+
+		updateGroupNav(allNodesData);
 
 		gotoPage(curPageId);
 		$.getJSON(resultName + "/desc.json", function(desc) {
-			console.log('test');		
+			console.log('loading desc');		
 			if (desc) {
 				$('#desc').html(desc.comment);
 			}
@@ -94,7 +150,12 @@
 		totPages = Math.ceil(curNodeData.related_nodes.length / nodesPerPage);
 		$('.page_navigation').html(getDisplayNavigationHTML(curPageId, totPages));
 	 }
-	 	 	 
+	 	 
+	function isString(o) {
+		return typeof o == "string" || (typeof o == "object" && o.constructor === String);
+	}		
+	
+	
 	 function update(node, pageId, keepOldContent) {
 		$('#loading').show();
 		if (!keepOldContent) {
@@ -110,39 +171,54 @@
 		var nodeStart = (pageId - 1)* nodesPerPage;
 		var nodeEnd = Math.min(related_nodes.length, nodeStart + nodesPerPage);		
 		related_nodes = related_nodes.slice(nodeStart, nodeEnd);
-		var related_node_result_feed = currentNode.related_node_result_feed;
+		var related_node_result_feed = currentNode.related_node_result_feed;		
 		if (related_node_result_feed) {
-			related_node_result_feed = related_node_result_feed.slice(nodeStart, nodeEnd);
+			if (related_node_result_feed[0].length != 1) {
+				related_node_result_feed = related_node_result_feed.slice(nodeStart, nodeEnd);
+			} else {
+				temp_array = [];
+				temp_array.push(related_node_result_feed);
+				related_node_result_feed = temp_array;
+			}
 		}
 		var related_node_desc = currentNode.related_node_desc;
 		if (related_node_desc) {
-			related_node_desc = related_node_desc.slice(nodeStart, nodeEnd);
+			if (!isString(related_node_desc)) {
+				related_node_desc = related_node_desc.slice(nodeStart, nodeEnd);
+			} else {
+				temp_array = [];
+				temp_array.push(related_node_desc);
+				related_node_desc = temp_array;
+			}
 		}
 		
-//		console.log('load ' + related_nodes);
 
 		nodesDesc = [];
 		var allNodes = '';
 		for (var i = 0; i < related_nodes.length; ++i) {
 			var curNodeId = related_nodes[i];
 			relatedNode = relatedNode == '' ? curNodeId : relatedNode + ',' + curNodeId;
-			currentResultFeed = resultFeed;
+			var currentResultFeed = resultFeed;
 			if (related_node_result_feed) {
-				var currentResultFeed = related_node_result_feed[i];
+				currentResultFeed = related_node_result_feed[i];
 			} 
+			
 			tmpNodeInfoUrl = currentResultFeed + "/node_" + curNodeId + ".json";
 			jsonUrls.push(tmpNodeInfoUrl);
+
 			var nodeDesc = {}
 			currentNodeDesc = (currentNode.comment ? currentNode.comment : currentNode.desc);
 			if (related_node_desc) {
 				currentNodeDesc = related_node_desc[i];
 			}
 			nodeDesc.title = '<font style="color:red;">node ' + curNodeId + '<br>' + currentNodeDesc + '</font>';
+			nodeDesc.nodeId = curNodeId;
+			nodeDesc.feed = currentResultFeed;
 			nodesDesc.push(nodeDesc);
 		}
 		
-		relatedNode = '<font style="color:red;"><b>Nodes: ' + relatedNode + '</b></font>';
-		$('#subpage_footnote').html(relatedNode);
+//		relatedNode = '<font style="color:red;"><b>Nodes: ' + relatedNode + '</b></font>';
+//		$('#subpage_footnote').html(relatedNode);
 		if (jsonUrls.length > 0) { // Need to Change Back!!!
 			loadJsons(jsonUrls, [], [], 0, nodesDesc);
 			$('#image_table').on('mouseleave', function(){previewHide();});
@@ -150,9 +226,12 @@
 	 }
 	 
 	 function getNodeImagesHTML(nodeData, extraGroupData) {
-		return getImageBlock(nodeData, 36, extraGroupData, 60);				
+		return getImageBlock(nodeData, 49, extraGroupData, 60, 50);				
 	 }
-
+	
+	 function extraInfo(ele) {
+		alert(ele);
+	 }
 	 function loadJsons(jsonUrls, onLoadedAll, allData, index, extraGroupData) {
 		if (index < jsonUrls.length) {
 			try {
@@ -167,7 +246,28 @@
 		} else {
 			for (var i = 0; i < allData.length; ++i) {
 				imageBlock = getNodeImagesHTML(allData[i], extraGroupData[i]);
-				$('#image_table').append(imageBlock);
+				
+				// Add tag cluster link.
+				tag_cluster_link = $('<div id="expand_this_' + extraGroupData[i].nodeId + ',' + extraGroupData[i].feed + '">').html('tag cluster').css('color', 'blue').css('font-weight', 'bold').css('cursor', 'pointer');
+				tag_cluster_link = $(tag_cluster_link).on('mouseover', function(e){
+					var tmpNodeId = $(e.target)[0].id.substring('expand_this_'.length);
+					var tmpFeed = tmpNodeId.split(',');
+					tmpNodeId = tmpFeed[0];
+					tmpFeed = tmpFeed[1];
+					$.getJSON(tmpFeed + "/node_" + tmpNodeId + "extra.json", function(json) {
+						var tagImageBlock = getNodeImagesHTML(json);
+						$('.image_preview').html('');
+						$('.image_preview').append($(tagImageBlock));
+						$('.image_preview').fadeIn();
+						moveToMouse($('.image_preview'), 10, -40);
+					});
+				});		
+				tag_cluster_link = $(tag_cluster_link).on('mousemove', function(e){			
+					moveToMouse($('.image_preview'), 10, -40);
+				});					
+				imageBlock = $(imageBlock).prepend($(tag_cluster_link));		
+				// Done add tag cluster link.
+				$('#image_table').append($(imageBlock));
 			}
 			$('#loading').hide();
 		}

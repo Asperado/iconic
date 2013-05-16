@@ -4,11 +4,11 @@
     <meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
     <script src="http://d3js.org/d3.v3.min.js"></script>
 	<script type="text/javascript" src="http://code.jquery.com/jquery-1.9.1.min.js"></script> 
-    <script src="script/impression1.js"></script>
-    <script src="script/url_tools.js"></script>
+    <script src="http://homtao.com/iconic/web/cluster/script/impression1.js"></script>
+    <script src="http://homtao.com/iconic/web/cluster/script/url_tools.js"></script>
 	
-	<link href="css/image_table.css" rel="stylesheet" type="text/css" />
-	<link rel="stylesheet" type="text/css" href="css/basic.css" />
+	<link href="http://homtao.com/iconic/web/cluster/css/image_table.css" rel="stylesheet" type="text/css" />
+	<link rel="stylesheet" type="text/css" href="http://homtao.com/iconic/web/cluster/css/basic.css" />
     <style type="text/css">
 
     </style>
@@ -41,17 +41,24 @@
 	  d3.json(resultName + "/nodes.json", function(json) {
 		$('#title').html('<h3>Iconic Clusters Page</h3><hr>');
 		allNodesData = json;
-		update(allNodesData, curPageId);		
 		totPages = Math.ceil(allNodesData.length / nodesPerPage);
-		$('.page_navigation').html(getDisplayNavigationHTML(curPageId, totPages, update));
+		gotoPage(curPageId, 1);
 
 		d3.json(resultName + "/desc.json", function(desc) {
 			if (desc) {
 				$('#desc').html(desc.comment);
 			}
 		});
-	});
-     
+	  });
+	  
+    var page_preview = function(index) {
+		startId = nodesPerPage * (index - 1) + 1;
+		endId = startId + nodesPerPage - 1;
+		$('.image_preview').html('<div class="image_block"><font style="color:black">cluster' + startId + ' to ' + endId + '</font></div>');
+		moveToMouse($('.image_preview'));
+		$('.image_preview').fadeIn();
+	}
+	
 	var scrollLock = 0;
 	$(window).scroll(function(){
 		window.setTimeout(function(){
@@ -70,6 +77,7 @@
 		curPageId = pageId;
 		update(allNodesData, pageId, keepOldContent);
 		$('.page_navigation').html(getDisplayNavigationHTML(curPageId, totPages));
+		$('.page_navigation div').attr('onmouseover', 'page_preview($(this).index());');
 	 }
 	
 	 	 
@@ -130,7 +138,7 @@
 	 function getNodePreviewImagesHTML(nodeData, extraGroupData) {
 		var allNodeImages = [];
 		allNodeImages.push(nodeData);
-		return getImageBlocks(allNodeImages, 50, 0, extraGroupData, 60);				
+		return getImageBlocks(allNodeImages, 49, 0, extraGroupData, 60);				
 	 }
 	
     </script>
