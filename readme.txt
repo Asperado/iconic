@@ -9,8 +9,7 @@ Environment Setup:
   5. Matlab
   6. use Matlab to complie processor/HoG/features.cc
     If you are using Mac OS and you encounter error while mexing file, you may need this patch. http://www.mathworks.com/support/solutions/en/data/1-FR6LXJ/
-
-  NOTE: the system can be modified to run on Windows system, currently, it supports linux.
+  7. Choose the correct version of colorDescriptor in processor/visual_feature/HarrisRGB_SIFT/sift and processor/visual_feature/DenseRGB_SIFT/sift, depending on the platform (windows, linux, mac). For Windows user, you may need to change the extractDescriptor.m to invoke the colorDescriptor.exe.
 
 Running:
 
