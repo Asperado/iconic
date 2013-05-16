@@ -1,6 +1,5 @@
 from photo import Photo
 
-
 def getPhoto(info):
     photoMetaPath = info['photo_dao'].dbHelper.getMetaFile(info['query'], info['photo_id']);
     photo = info['photo_dao'].getPhotoFromFile(photoMetaPath);

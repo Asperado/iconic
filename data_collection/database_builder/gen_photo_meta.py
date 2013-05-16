@@ -53,6 +53,14 @@ def main():
     photos = photo_dao.getPhotos(query, photo_ids);
     toc();
 
+    # Gen owner list
+    from core.gen_user_list import gen_user_list
+    print('gen owner list ...');
+    tic();
+    gen_user_list(root, query, photos)
+    toc();
+
+
     # Generate top 'top_tag_num' tags.
     from core.task_gen_top_tags import task_gen_top_tag_via_user;
     print('gen top tags via user...');

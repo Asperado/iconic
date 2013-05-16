@@ -7,7 +7,7 @@ function result = gen_visual_theme_result(clusters, ...
     end
     result = {};
     taglist = database.get_taglist();
-    theme_entry = cell(length(taglist));
+    theme_entry = cell(length(taglist), 1);
     for t = 1:length(taglist)
         entry = {};
         entry.tag = taglist{t};
