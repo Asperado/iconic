@@ -72,7 +72,7 @@ classdef IconicDatabase < handle
         
         function [tags] = get_taglist_raw(obj, taglist_path) 
             if (~exist('taglist_path', 'var'))
-                taglist_path = sprintf('%s/data/features/Tag%d/%s/tag%d_tags.mat', obj.root_path_, obj.tag_dim_, obj.query_, obj.tag_dim_);
+                taglist_path = sprintf('%s/data/features/tag%d/%s/tag%d_tags.mat', obj.root_path_, obj.tag_dim_, obj.query_, obj.tag_dim_);
             end
             tags = load(taglist_path);
             tags = tags.tags;
@@ -80,7 +80,7 @@ classdef IconicDatabase < handle
         
         function [taglist] = get_taglist(obj, taglist_path) 
             if (~exist('taglist_path', 'var'))
-                taglist_path = sprintf('%s/data/features/Tag%d/%s/tag%d_tags.mat', obj.root_path_, obj.tag_dim_, obj.query_, obj.tag_dim_);
+                taglist_path = sprintf('%s/data/features/tag%d/%s/tag%d_tags.mat', obj.root_path_, obj.tag_dim_, obj.query_, obj.tag_dim_);
             end
             tags = load(taglist_path);
             tags = tags.tags;
@@ -101,7 +101,7 @@ classdef IconicDatabase < handle
         
         function [tag_mat] = get_tag_feature(obj, tag_feature_path)
             if (~exist('tag_feature_path', 'var'))
-                tag_feature_path = sprintf('%s/data/features/Tag%d/%s/tag%d_sparse.mat', obj.root_path_, obj.tag_dim_, obj.query_, obj.tag_dim_);
+                tag_feature_path = sprintf('%s/data/features/tag%d/%s/tag%d_sparse.mat', obj.root_path_, obj.tag_dim_, obj.query_, obj.tag_dim_);
             end
             fprintf('Load tag feature.\n');
             tag_feature_data = load(tag_feature_path);    
@@ -131,11 +131,11 @@ classdef IconicDatabase < handle
         
         function [tags, obj] = GetImageTags(obj, image_ids)
             if (isempty(obj.taglist_)) 
-                taglist_path = (sprintf('%s/data/features/Tag%d/%s/tag%d_tags.mat', obj.root_path_, obj.tag_dim_, obj.query_, obj.tag_dim_));
+                taglist_path = (sprintf('%s/data/features/tag%d/%s/tag%d_tags.mat', obj.root_path_, obj.tag_dim_, obj.query_, obj.tag_dim_));
                 get_taglist(obj, taglist_path);
             end
             if (isempty(obj.tags_))
-                input = load(sprintf('%s/data/features/Tag%d/%s/tag%d.mat', obj.root_path_, obj.tag_dim_, obj.query_, obj.tag_dim_));
+                input = load(sprintf('%s/data/features/tag%d/%s/tag%d.mat', obj.root_path_, obj.tag_dim_, obj.query_, obj.tag_dim_));
                 obj.tags_ = input.featureData;
                 clear input;
             end
@@ -144,13 +144,13 @@ classdef IconicDatabase < handle
         
         function [tags, obj] = get_image_tags(obj, image_ids)
             if (isempty(obj.taglist_)) 
-                taglist_path = (sprintf('%s/data/features/Tag%d/%s/tag%d_tags.mat', obj.root_path_, obj.tag_dim_, obj.query_, obj.tag_dim_));
+                taglist_path = (sprintf('%s/data/features/tag%d/%s/tag%d_tags.mat', obj.root_path_, obj.tag_dim_, obj.query_, obj.tag_dim_));
                 get_taglist(obj, taglist_path);
             end
             if (isempty(obj.tags_))
-                tag_path = sprintf('%s/data/features/Tag%d/%s/tag%d.mat', obj.root_path_, obj.tag_dim_, obj.query_, obj.tag_dim_);
+                tag_path = sprintf('%s/data/features/tag%d/%s/tag%d.mat', obj.root_path_, obj.tag_dim_, obj.query_, obj.tag_dim_);
                 if (~exist(tag_path, 'file'))
-                    tag_path = sprintf('%s/data/features/Tag%d/%s/tag%d_sparse.mat', obj.root_path_, obj.tag_dim_, obj.query_, obj.tag_dim_)
+                    tag_path = sprintf('%s/data/features/tag%d/%s/tag%d_sparse.mat', obj.root_path_, obj.tag_dim_, obj.query_, obj.tag_dim_)
                 end
                 input = load(tag_path);
                 obj.tags_ = input.featureData;
@@ -190,7 +190,7 @@ classdef IconicDatabase < handle
         end
         
         function [clusters] = GetTagClusters(obj)
-            input = load(sprintf('%s/data/features/Tag%d/%s/cluster.mat', obj.root_path_, obj.tag_dim_, obj.query_));
+            input = load(sprintf('%s/data/features/tag%d/%s/cluster.mat', obj.root_path_, obj.tag_dim_, obj.query_));
             clusters = input.IDXs;
         end
         

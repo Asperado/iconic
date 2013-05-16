@@ -3,6 +3,7 @@ function config = gen_iconic_config_data(query, root_path, tag_dim, cca_feature_
   fprintf('Load Configureation...\n');
   addpath('../tag_cluster'); 
   addpath('../visualization_meta'); 
+  addpath('../tag_cluster/kmeans');
   addpath('../database');
   addpath('../basic');
   addpath(genpath('../third_party_lib'));
